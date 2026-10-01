@@ -104,4 +104,10 @@ target_link_libraries(StereoBoy_FW
         no-OS-FatFS-SD-SDIO-SPI-RPi-Pico
         )
 
+# SD card interface: SPI (StereoMag dev kit cartridge, default) or SDIO on GPIO 12-17
+option(SB_SD_SDIO "Use SDIO instead of SPI for the cartridge SD card" OFF)
+if(SB_SD_SDIO)
+    target_compile_definitions(StereoBoy_FW PRIVATE SB_SD_SDIO)
+endif()
+
 pico_add_extra_outputs(StereoBoy_FW)

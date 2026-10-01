@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 
 #include "hw_config.h"
 
+#ifdef SB_SD_SDIO
 /* SDIO Interface Configuration 
  * Pin mapping details for your requested GPIO 12-18 range:
  * CLK = 12 (Derived automatically by the PIO logic as D0_gpio - 2)
@@ -37,6 +38,37 @@ static sd_card_t sd_card = {
     // .card_detect_gpio = 18, // Uncomment if you want to use GPIO 18 for Card Detect
     // .card_detected_true = 0
 };
+#else
+/* SPI Interface Configuration (StereoMag dev kit cartridge)
+ * The cartridge wires the microSD socket to SPI1, shared with the VS1053:
+ * SCK = 30, TX/MOSI = 31, RX/MISO = 28, CS = 2 (SD_CS on the cartridge port)
+ *
+ * The bus is left at the SD baud rate after each card access, and the VS1053
+ * driver does not set its own rate, so stay below the VS1053's SCI read limit
+ * (CLKI/7 = ~6.8 MHz with SCI_CLOCKF = 0xB000 and a 12 MHz crystal).
+ */
+static spi_t spi = {
+    .hw_inst = spi1,
+    .sck_gpio = 30,
+    .mosi_gpio = 31,
+    .miso_gpio = 28,
+    .baud_rate = 6 * 1000000 // 6 MHz
+};
+
+static sd_spi_if_t spi_if = {
+    .spi = &spi,
+    .ss_gpio = 2
+};
+
+/* Hardware Configuration of the SD Card socket "object" */
+static sd_card_t sd_card = {
+    .type = SD_IF_SPI,
+    .spi_if_p = &spi_if,
+    .use_card_detect = false,
+    // .card_detect_gpio = 41, // SD_DETECT on the cartridge port; polarity depends on the socket
+    // .card_detected_true = 0
+};
+#endif
 
 /* ********************************************************************** */
 
